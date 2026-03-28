@@ -155,9 +155,13 @@ export function ExplorerPanel({ panelId, tabId }: ExplorerPanelProps) {
                 <>
                   <p className="feature-copy">{result.summary}</p>
                   <div className="stat-row">
-                    <StatCard label="Best setting" value={result.recommendation.optimalSetting} />
+                    <StatCard className="stat-card-blue" label="Best setting" value={result.recommendation.optimalSetting} />
                     <StatCard label="Best plan" value={result.recommendation.optimalPlan} />
-                    <StatCard label="Savings vs costly path" value={moneyDetailed(result.recommendation.savingsVsWorstCase)} />
+                    <StatCard
+                      className="stat-card-green"
+                      label="Savings vs costly path"
+                      value={moneyDetailed(result.recommendation.savingsVsWorstCase)}
+                    />
                   </div>
                   <p className="feature-copy">{result.recommendation.reasoning}</p>
                   <ul className="detail-list">

@@ -19,6 +19,9 @@ export function AppShell() {
       <a className="skip-link" href="#main-content">
         Skip to Main Content
       </a>
+      <div aria-hidden="true" className="bg-orb orb-a" />
+      <div aria-hidden="true" className="bg-orb orb-b" />
+      <div aria-hidden="true" className="bg-orb orb-c" />
       <main className="shell" id="main-content">
         <header className="header">
           <div className="topbar">

@@ -235,12 +235,16 @@ export function BillPanel({ panelId, tabId }: BillPanelProps) {
                 </div>
               </div>
               <div className="stat-row">
-                <StatCard label="Billed total" value={money(parseResult?.totals.billedTotal ?? 0)} />
+                <StatCard className="stat-card-blue" label="Billed total" value={money(parseResult?.totals.billedTotal ?? 0)} />
                 <StatCard
                   label="Allowed benchmark"
                   value={money(analysisResult?.totals.allowedTotal ?? parseResult?.totals.allowedTotal ?? 0)}
                 />
-                <StatCard label="Review opportunity" value={money(analysisResult?.estimatedOpportunity ?? 0)} />
+                <StatCard
+                  className="stat-card-gold"
+                  label="Review opportunity"
+                  value={money(analysisResult?.estimatedOpportunity ?? 0)}
+                />
               </div>
               <p className="table-note table-note-strong">
                 Benchmarks are deterministic checks against parsed line items and allowed-amount anchors, not legal conclusions.
