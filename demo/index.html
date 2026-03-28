@@ -1,0 +1,153 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BillPilot AI Demo</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg-orb orb-a" aria-hidden="true"></div>
+    <div class="bg-orb orb-b" aria-hidden="true"></div>
+
+    <header class="hero">
+      <h1>BillPilot AI</h1>
+      <p class="subhead">Dispute a medical bill you already have — or explore costs before you go.</p>
+    </header>
+
+    <!-- Tab navigation -->
+    <div class="tab-bar">
+      <button class="tab tab-active" data-tab="bill">
+        <span class="tab-icon">📋</span> Bill Dispute
+      </button>
+      <button class="tab" data-tab="explorer">
+        <span class="tab-icon">🔍</span> Treatment Cost Explorer
+      </button>
+    </div>
+
+    <!-- =================== BILL DISPUTE PANE =================== -->
+    <div id="pane-bill" class="grid">
+      <section class="panel upload-panel">
+        <h2>1. Upload Bill</h2>
+        <p class="muted">Use a <code>.txt</code> bill file with lines in format: <code>Description|Amount|Allowed|Billed Date</code></p>
+        <div class="drop-wrap">
+          <input type="file" id="billFile" accept=".txt" />
+          <button id="loadSampleBtn" class="secondary">Load Sample Bill</button>
+        </div>
+        <textarea id="rawInput" rows="8" placeholder="Or paste bill lines here..."></textarea>
+        <button id="parseBtn">Parse Bill</button>
+        <p id="parseStatus" class="status"></p>
+      </section>
+
+      <section class="panel">
+        <h2>2. Bill Line Items</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Line Item</th>
+                <th>Billed</th>
+                <th>Allowed</th>
+                <th>Variance</th>
+                <th>Risk</th>
+              </tr>
+            </thead>
+            <tbody id="lineItemsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>3. Action Plan</h2>
+        <div id="plan" class="plan"></div>
+      </section>
+
+      <section class="panel">
+        <h2>4. Ready Scripts</h2>
+        <label for="callScript">Call Script</label>
+        <textarea id="callScript" rows="7" readonly></textarea>
+        <label for="emailDraft">Dispute Email</label>
+        <textarea id="emailDraft" rows="9" readonly></textarea>
+        <div class="actions">
+          <button id="copyCall" class="secondary">Copy Call Script</button>
+          <button id="copyEmail" class="secondary">Copy Email</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- =================== TREATMENT EXPLORER PANE =================== -->
+    <div id="pane-explorer" class="explorer-pane hidden">
+
+      <!-- Input + How-It-Works row -->
+      <div class="explorer-top-grid">
+        <section class="panel explorer-input-panel">
+          <h2>Find Treatment Costs</h2>
+          <p class="muted">Enter a condition — AI identifies CPT billing codes and compares real costs across settings and insurance plans.</p>
+          <label for="conditionInput">Medical Condition</label>
+          <input type="text" id="conditionInput" class="text-input" placeholder="e.g. Type 2 Diabetes, Torn ACL, UTI, Appendectomy, Hypertension..." />
+          <label for="zipInput">ZIP Code <span style="font-weight:400;color:var(--muted)">(optional, for regional context)</span></label>
+          <input type="text" id="zipInput" class="text-input zip-input" placeholder="e.g. 90210" maxlength="5" />
+          <button id="analyzeBtn">Analyze Treatment Costs</button>
+          <p id="explorerStatus" class="status"></p>
+        </section>
+
+        <section class="panel explorer-howto">
+          <h2>How It Works</h2>
+          <div class="plan">
+            <div class="plan-item"><strong>Step 1:</strong> AI maps your condition to the relevant CPT billing codes providers use.</div>
+            <div class="plan-item"><strong>Step 2:</strong> Costs are benchmarked against CMS Medicare rates — the standard pricing floor.</div>
+            <div class="plan-item"><strong>Step 3:</strong> Every setting (hospital, clinic, urgent care, telehealth) is priced under 6 insurance plans.</div>
+            <div class="plan-item"><strong>Step 4:</strong> The lowest-cost path is highlighted with actionable savings tips.</div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Results grid — hidden until analysis runs -->
+      <div id="explorerResults" class="hidden explorer-results-grid">
+
+        <!-- CPT Codes Panel -->
+        <section class="panel exp-panel-full">
+          <h2>Identified Billing Codes (CPT)</h2>
+          <p id="conditionSummary" class="muted"></p>
+          <div class="table-wrap">
+            <table id="cptTable">
+              <thead>
+                <tr>
+                  <th>CPT Code</th>
+                  <th>Description</th>
+                  <th>Category</th>
+                  <th>Medicare Rate</th>
+                </tr>
+              </thead>
+              <tbody id="cptBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Cost Matrix Panel -->
+        <section class="panel exp-panel-full">
+          <h2>Cost Comparison: Setting × Insurance Plan</h2>
+          <p class="muted">
+            Patient out-of-pocket cost per treatment episode.
+            &nbsp;<span class="legend legend-min">■ Lowest cost</span>
+            &nbsp;<span class="legend legend-max">■ Highest cost</span>
+            &nbsp;<span class="legend legend-rec">★ Recommended</span>
+          </p>
+          <div class="table-wrap matrix-wrap">
+            <table id="matrixTable" class="matrix-table">
+              <thead id="matrixHead"></thead>
+              <tbody id="matrixBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Recommendation Panel -->
+        <section class="panel exp-panel-full recommendation-panel">
+          <h2>Optimal Choice</h2>
+          <div id="recommendationContent"></div>
+        </section>
+
+      </div>
+    </div>
+    <script src="./app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+.next
+node_modules
+coverage
+playwright-report
+test-results
+.env.local
+.env
+*.env
+.DS_Store
+.claude
+.vscode
+Creator Challenge CONTEST Official Rules.pdf
+SKILL.md
+agents/
+converted-skills/
+references/
