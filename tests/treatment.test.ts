@@ -11,6 +11,14 @@ describe("treatment explorer", () => {
     expect(result.recommendation?.optimalSetting).toContain("Arlington");
   });
 
+  it("covers newly added launch-set conditions deterministically", () => {
+    const result = exploreTreatment("Asthma Follow-up", "98101");
+    expect(result.supported).toBe(true);
+    expect(result.condition).toBe("Asthma Follow-up");
+    expect(result.cptCodes.length).toBeGreaterThan(1);
+    expect(result.localContext?.locationLabel).toContain("Seattle");
+  });
+
   it("returns unsupported responses for out-of-scope conditions", () => {
     const result = exploreTreatment("Rare zebra syndrome");
     expect(result.supported).toBe(false);

@@ -131,8 +131,11 @@ export function parseBillInput(input: ParseSource): BillParseResult {
   }
 
   const sourceType = inferSourceType(input);
+  if (sourceType === "pdf") {
+    throw new Error("PDF upload is not supported yet. Upload a TXT or CSV file, or paste the bill text directly.");
+  }
   const rawText = (input.rawText ?? input.fileContent ?? "").trim();
-  if (!rawText && sourceType !== "pdf") {
+  if (!rawText) {
     throw new Error("Bill input is empty.");
   }
 
@@ -146,28 +149,6 @@ export function parseBillInput(input: ParseSource): BillParseResult {
       .filter((item): item is BillLineItem => Boolean(item));
   } else {
     lineItems = parseMessyText(rawText);
-  }
-
-  if (sourceType === "pdf" && !lineItems.length) {
-    return billParseResultSchema.parse({
-      sourceType,
-      providerName: null,
-      serviceDates: [],
-      lineItems: [],
-      extractionConfidence: 0.2,
-      uncertainFields: [
-        {
-          lineItemId: "upload",
-          field: "description",
-          reason: "PDF uploaded without extractable text. Ask user to paste OCR text or review manually.",
-        },
-      ],
-      totals: {
-        billedTotal: 0,
-        allowedTotal: 0,
-        statedTotal: null,
-      },
-    });
   }
 
   const uncertainFields = lineItems.flatMap((item) => {

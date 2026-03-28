@@ -257,6 +257,7 @@ button {
 
 .feature-copy,
 .status,
+.support-note,
 .field-error,
 .market-card p,
 .stack-item span,
@@ -306,7 +307,7 @@ button {
 button:focus-visible,
 .upload-button:focus-within,
 .disclosure-summary:focus-visible {
-  outline: 2px solid rgba(21, 91, 86, 0.22);
+  outline: 2px solid rgba(31, 95, 146, 0.22);
   outline-offset: 2px;
 }
 
@@ -704,8 +705,17 @@ td:first-child {
   font-size: 0.94rem;
 }
 
+.support-note {
+  margin: 12px 0 0;
+  font-size: 0.88rem;
+}
+
 .status-error {
   color: var(--danger);
+}
+
+.disclosure-stack {
+  margin-top: 16px;
 }
 
 @media (max-width: 1080px) {

@@ -74,7 +74,7 @@ export function BillPanel({ panelId, tabId }: BillPanelProps) {
                 type="file"
                 name="billFile"
                 aria-label="Upload a bill file"
-                accept=".txt,.csv,.pdf,text/plain,text/csv,application/pdf"
+                accept=".txt,.csv,text/plain,text/csv"
                 onChange={async (event) => {
                   const file = event.target.files?.[0];
                   if (!file) return;
@@ -93,7 +93,7 @@ export function BillPanel({ panelId, tabId }: BillPanelProps) {
           {uploadedFile ? (
             <div className="upload-summary">
               <strong>{uploadedFile.fileName}</strong>
-              <span>{uploadedFile.mimeType === "application/pdf" ? "PDF upload" : "Text-based upload"}</span>
+              <span>Text-based upload</span>
             </div>
           ) : null}
 
@@ -105,7 +105,7 @@ export function BillPanel({ panelId, tabId }: BillPanelProps) {
             className={inputError ? "bill-input text-input-error" : "bill-input"}
             value={billText}
             onChange={(event) => setBillText(event.target.value)}
-            placeholder="Paste itemized bill text here, or upload a TXT / CSV / PDF file above…"
+            placeholder="Paste itemized bill text here, or upload a TXT / CSV file above…"
             name="billText"
             autoComplete="off"
             aria-invalid={Boolean(inputError)}
@@ -129,6 +129,10 @@ export function BillPanel({ panelId, tabId }: BillPanelProps) {
           </div>
 
           <StatusMessage text={status} isError={hasError} />
+          <p className="support-note">
+            BillPilot flags duplicate charges, benchmark variance, and facility-fee outliers for review support only. Verify
+            disputes against your official bill, EOB, provider, or insurer.
+          </p>
         </div>
       </section>
 
@@ -238,6 +242,9 @@ export function BillPanel({ panelId, tabId }: BillPanelProps) {
                 />
                 <StatCard label="Review opportunity" value={money(analysisResult?.estimatedOpportunity ?? 0)} />
               </div>
+              <p className="table-note table-note-strong">
+                Benchmarks are deterministic checks against parsed line items and allowed-amount anchors, not legal conclusions.
+              </p>
             </section>
 
             {drafts ? (

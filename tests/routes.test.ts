@@ -34,6 +34,17 @@ describe("route handlers", () => {
     expect(payload.sourceType).toBe("csv");
   });
 
+  it("parse-bill rejects pdf uploads until text extraction exists", async () => {
+    const response = await parseBillPost(
+      new Request("http://localhost/api/parse-bill", {
+        method: "POST",
+        body: JSON.stringify({ fileName: "bill.pdf", fileContent: "fake pdf body", mimeType: "application/pdf" }),
+      }),
+    );
+    expect(response.status).toBe(400);
+    expect((await readJson(response)).error).toContain("PDF upload is not supported yet");
+  });
+
   it("parse-bill rejects empty payloads", async () => {
     const response = await parseBillPost(
       new Request("http://localhost/api/parse-bill", {
@@ -104,6 +115,19 @@ describe("route handlers", () => {
     expect(supportedPayload.localContext.locationLabel).toContain("Arlington");
     expect(supportedPayload.treatmentSettings[0].plans).toHaveLength(6);
     expect((await readJson(unsupported)).supported).toBe(false);
+  });
+
+  it("treatment-explorer supports newly added launch-set conditions", async () => {
+    const response = await treatmentExplorerPost(
+      new Request("http://localhost/api/treatment-explorer", {
+        method: "POST",
+        body: JSON.stringify({ condition: "Asthma Follow-up", zipCode: "98101" }),
+      }),
+    );
+    const payload = await readJson(response);
+    expect(payload.supported).toBe(true);
+    expect(payload.condition).toBe("Asthma Follow-up");
+    expect(payload.localContext.locationLabel).toContain("Seattle");
   });
 
   it("treatment-explorer normalizes zip+4 input", async () => {

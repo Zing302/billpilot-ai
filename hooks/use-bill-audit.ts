@@ -2,7 +2,7 @@
 
 import { cleanBillText, seededBillText } from "@/data/demo-fixtures";
 import type { BillAnalysisResult, BillParseResult, DisputeDraftResult } from "@/lib/schemas/billpilot";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const initialStatus = "Paste an itemized bill or load a sample to begin.";
 
@@ -21,8 +21,9 @@ export function useBillAudit() {
   const [status, setStatus] = useState(initialStatus);
   const [loading, setLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const hasAutoplayedSeededExample = useRef(false);
 
-  const inputError = billText.trim() || uploadedFile ? null : "Paste an itemized bill or upload a text, CSV, or PDF file first.";
+  const inputError = billText.trim() || uploadedFile ? null : "Paste an itemized bill or upload a text or CSV file first.";
 
   const steps = useMemo(
     () => [
@@ -35,19 +36,22 @@ export function useBillAudit() {
   );
 
   function loadFlaggedExample() {
+    hasAutoplayedSeededExample.current = false;
     setUploadedFile(null);
     setBillText(seededBillText);
-    reset();
+    resetWorkflow();
   }
 
   function loadCleanExample() {
+    hasAutoplayedSeededExample.current = true;
     setUploadedFile(null);
     setBillText(cleanBillText);
-    reset();
+    resetWorkflow();
   }
 
   async function uploadBill(file: File) {
     const fileContent = await file.text();
+    hasAutoplayedSeededExample.current = true;
     setBillText("");
     setUploadedFile({
       fileName: file.name,
@@ -77,13 +81,63 @@ export function useBillAudit() {
     if (analysisResult) setStatus("Review the strongest findings, then generate the outreach drafts.");
   }
 
-  function reset() {
-    setUploadedFile(null);
+  function resetWorkflow() {
     setParseResult(null);
     setAnalysisResult(null);
     setDrafts(null);
     setHasError(false);
     setStatus(initialStatus);
+  }
+
+  function reset() {
+    hasAutoplayedSeededExample.current = true;
+    setUploadedFile(null);
+    resetWorkflow();
+  }
+
+  async function requestParse() {
+    if (inputError) {
+      throw new Error(inputError);
+    }
+
+    const response = await fetch("/api/parse-bill", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(
+        uploadedFile
+          ? {
+              fileName: uploadedFile.fileName,
+              fileContent: uploadedFile.fileContent,
+              mimeType: uploadedFile.mimeType,
+            }
+          : { rawText: billText },
+      ),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error ?? "Bill parse failed.");
+    return payload as BillParseResult;
+  }
+
+  async function requestAnalysis(parsed: BillParseResult) {
+    const response = await fetch("/api/analyze-bill", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lineItems: parsed.lineItems, statedTotal: parsed.totals.statedTotal }),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error ?? "Analysis failed.");
+    return payload as BillAnalysisResult;
+  }
+
+  async function requestDrafts(parsed: BillParseResult, analysis: BillAnalysisResult) {
+    const response = await fetch("/api/generate-dispute", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ findings: analysis.findings, lineItems: parsed.lineItems }),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error ?? "Draft generation failed.");
+    return payload as DisputeDraftResult;
   }
 
   async function parseBill() {
@@ -98,21 +152,7 @@ export function useBillAudit() {
     setStatus("Parsing and cleaning the bill…");
 
     try {
-      const response = await fetch("/api/parse-bill", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          uploadedFile
-            ? {
-                fileName: uploadedFile.fileName,
-                fileContent: uploadedFile.fileContent,
-                mimeType: uploadedFile.mimeType,
-              }
-            : { rawText: billText },
-        ),
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error ?? "Bill parse failed.");
+      const payload = await requestParse();
       setParseResult(payload);
       setAnalysisResult(null);
       setDrafts(null);
@@ -132,13 +172,7 @@ export function useBillAudit() {
     setStatus("Checking for duplicates, benchmark variance, and facility-fee issues…");
 
     try {
-      const response = await fetch("/api/analyze-bill", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lineItems: parseResult.lineItems, statedTotal: parseResult.totals.statedTotal }),
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error ?? "Analysis failed.");
+      const payload = await requestAnalysis(parseResult);
       setAnalysisResult(payload);
       setDrafts(null);
       setStatus("Review the strongest findings, then generate the outreach drafts.");
@@ -157,13 +191,7 @@ export function useBillAudit() {
     setStatus("Writing provider and insurer drafts…");
 
     try {
-      const response = await fetch("/api/generate-dispute", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ findings: analysisResult.findings, lineItems: parseResult.lineItems }),
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error ?? "Draft generation failed.");
+      const payload = await requestDrafts(parseResult, analysisResult);
       setDrafts(payload);
       setStatus("Drafts are ready to copy.");
     } catch (error) {
@@ -173,6 +201,46 @@ export function useBillAudit() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (
+      hasAutoplayedSeededExample.current ||
+      uploadedFile ||
+      billText.trim() !== seededBillText ||
+      parseResult ||
+      analysisResult ||
+      drafts ||
+      loading
+    ) {
+      return;
+    }
+
+    hasAutoplayedSeededExample.current = true;
+    setLoading(true);
+    setHasError(false);
+    setStatus("Running the seeded bill review demo…");
+
+    void (async () => {
+      try {
+        const parsed = await requestParse();
+        setParseResult(parsed);
+        setStatus("Checking the seeded example against benchmark and duplicate-charge rules…");
+
+        const analysis = await requestAnalysis(parsed);
+        setAnalysisResult(analysis);
+        setStatus("Writing provider and insurer drafts for the seeded example…");
+
+        const generatedDrafts = await requestDrafts(parsed, analysis);
+        setDrafts(generatedDrafts);
+        setStatus("Seeded example is fully reviewed. The findings and drafts are ready.");
+      } catch (error) {
+        setHasError(true);
+        setStatus(error instanceof Error ? error.message : "Seeded demo run failed.");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [analysisResult, billText, drafts, loading, parseResult, uploadedFile]);
 
   const nextAction = !parseResult
     ? { label: loading ? "Working…" : "Parse Bill", onClick: parseBill }

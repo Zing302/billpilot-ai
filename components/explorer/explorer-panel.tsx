@@ -105,6 +105,10 @@ export function ExplorerPanel({ panelId, tabId }: ExplorerPanelProps) {
           </div>
 
           <StatusMessage text={status} isError={hasError} />
+          <p className="support-note">
+            Costs are benchmarked from CMS anchor rates plus modeled regional plan scenarios. Verify coverage and quotes with
+            your provider or insurer before scheduling care.
+          </p>
         </div>
 
         {result ? (
@@ -232,22 +236,6 @@ export function ExplorerPanel({ panelId, tabId }: ExplorerPanelProps) {
               </section>
             ) : null}
 
-            <section className="feature-card">
-              <div className="feature-card-head">
-                <div>
-                  <p className="section-label">How it works</p>
-                  <h3>How BillPilot benchmarks the episode</h3>
-                </div>
-              </div>
-              <div className="stack-list">
-                {result.methodology.map((line) => (
-                  <div key={line} className="stack-item">
-                    <span>{line}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-
             <details className="feature-card disclosure-card">
               <summary className="disclosure-summary">
                 <div>
@@ -277,6 +265,13 @@ export function ExplorerPanel({ panelId, tabId }: ExplorerPanelProps) {
                     ))}
                   </tbody>
                 </table>
+              </div>
+              <div className="stack-list disclosure-stack">
+                {result.methodology.map((line) => (
+                  <div key={line} className="stack-item">
+                    <span>{line}</span>
+                  </div>
+                ))}
               </div>
             </details>
           </div>
