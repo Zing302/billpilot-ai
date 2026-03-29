@@ -20,17 +20,6 @@ export function TabBar({
   return (
     <section className="tab-bar" aria-label="BillPilot workflows" role="tablist">
       <button
-        id={explorerTabId}
-        role="tab"
-        aria-selected={flow === "explorer"}
-        aria-controls={explorerPanelId}
-        className={flow === "explorer" ? "tab-link tab-link-active" : "tab-link"}
-        type="button"
-        onClick={() => onChange("explorer")}
-      >
-        Plan care
-      </button>
-      <button
         id={billTabId}
         role="tab"
         aria-selected={flow === "bill"}
@@ -39,7 +28,18 @@ export function TabBar({
         type="button"
         onClick={() => onChange("bill")}
       >
-        Review bill
+        Review a bill
+      </button>
+      <button
+        id={explorerTabId}
+        role="tab"
+        aria-selected={flow === "explorer"}
+        aria-controls={explorerPanelId}
+        className={flow === "explorer" ? "tab-link tab-link-active" : "tab-link"}
+        type="button"
+        onClick={() => onChange("explorer")}
+      >
+        Plan care costs
       </button>
     </section>
   );

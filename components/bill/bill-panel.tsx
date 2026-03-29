@@ -36,9 +36,25 @@ export function BillPanel({ panelId, tabId }: BillPanelProps) {
   } = useBillAudit();
   const { copiedId, copy } = useClipboard();
   const resultsRef = useRef<HTMLElement | null>(null);
+  const hasRevealedResultsRef = useRef(false);
 
   useEffect(() => {
-    if (parseResult || analysisResult || drafts) resultsRef.current?.focus();
+    if (!parseResult && !analysisResult && !drafts) {
+      hasRevealedResultsRef.current = false;
+      return;
+    }
+
+    if (drafts) {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      resultsRef.current?.focus();
+      hasRevealedResultsRef.current = true;
+      return;
+    }
+
+    if (!hasRevealedResultsRef.current) {
+      resultsRef.current?.focus();
+      hasRevealedResultsRef.current = true;
+    }
   }, [analysisResult, drafts, parseResult]);
 
   return (

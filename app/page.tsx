@@ -1,5 +1,6 @@
-import { AppShell } from "@/components/app-shell";
+import "./landing.css";
+import { LandingPage } from "@/components/landing/landing-page";
 
 export default function HomePage() {
-  return <AppShell />;
+  return <LandingPage />;
 }
